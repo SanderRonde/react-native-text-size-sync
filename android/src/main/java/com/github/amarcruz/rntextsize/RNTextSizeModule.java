@@ -61,31 +61,29 @@ class RNTextSizeModule extends ReactContextBaseJavaModule {
      * Based on ReactTextShadowNode.java
      */
     @SuppressWarnings("unused")
-    @ReactMethod
-    public void measure(@Nullable final ReadableMap specs, final Promise promise) {
-        final RNTextSizeConf conf = getConf(specs, promise, true);
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public WritableMap measure(@Nullable final ReadableMap specs) {
+        final RNTextSizeConf conf = getConf2(specs, true);
+        final WritableMap result = Arguments.createMap();
         if (conf == null) {
-            return;
+            return result;
         }
 
         final String _text = conf.getString("text");
         if (_text == null) {
-            promise.reject(E_MISSING_TEXT, "Missing required text.");
-            return;
+            return result;
         }
 
         final float density = getCurrentDensity();
         final float width = conf.getWidth(density);
         final boolean includeFontPadding = conf.includeFontPadding;
 
-        final WritableMap result = Arguments.createMap();
         if (_text.isEmpty()) {
             result.putInt("width", 0);
             result.putDouble("height", minimalHeight(density, includeFontPadding));
             result.putInt("lastLineWidth", 0);
             result.putInt("lineCount", 0);
-            promise.resolve(result);
-            return;
+            return result;
         }
 
         final SpannableString text = (SpannableString) RNTextSizeSpannedText
@@ -173,9 +171,9 @@ class RNTextSizeModule extends ReactContextBaseJavaModule {
                 result.putMap("lineInfo", info);
             }
 
-            promise.resolve(result);
+            return result;
         } catch (Exception e) {
-            promise.reject(E_UNKNOWN_ERROR, e);
+            return result;
         }
     }
 
@@ -353,6 +351,14 @@ class RNTextSizeModule extends ReactContextBaseJavaModule {
     private RNTextSizeConf getConf(final ReadableMap specs, final Promise promise, boolean forText) {
         if (specs == null) {
             promise.reject(E_MISSING_PARAMETER, "Missing parameter object.");
+            return null;
+        }
+        return new RNTextSizeConf(specs, forText);
+    }
+
+    @Nullable
+    private RNTextSizeConf getConf2(final ReadableMap specs, boolean forText) {
+        if (specs == null) {
             return null;
         }
         return new RNTextSizeConf(specs, forText);
