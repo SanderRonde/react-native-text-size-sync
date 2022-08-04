@@ -55,35 +55,40 @@ RCT_EXPORT_MODULE();
  * font specifications.
  * Based on `RCTTextShadowViewMeasure` of Libraries/Text/Text/RCTTextShadowView.m
  */
-RCT_EXPORT_METHOD(measure:(NSDictionary * _Nullable)options
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(measure:(NSDictionary * _Nullable)options)
 {
   // RCTConvert will return nil if the `options` object was not received.
   NSString *const _Nullable text = [RCTConvert NSString:options[@"text"]];
   if (isNull(text)) {
-    reject(E_MISSING_TEXT, @"Missing required text.", nil);
-    return;
+    return @{
+      @"width": @0,
+      @"height": @0,
+      @"lastLineWidth": @0,
+      @"lineCount": @0,
+    };
   }
 
   // Allow empty text without generating error
   // ~~TODO~~: Return the same height as RN. @completed(v2.0.1)
   if (!text.length) {
-    resolve(@{
-              @"width": @0,
-              @"height": @14,
-              @"lastLineWidth": @0,
-              @"lineCount": @0,
-              });
-    return;
+    return @{
+      @"width": @0,
+      @"height": @14,
+      @"lastLineWidth": @0,
+      @"lineCount": @0,
+    };
   }
 
   // We cann't use RCTConvert since it does not handle font scaling and RN
   // does not scale the font if a custom delegate has been defined to create.
   UIFont *const _Nullable font = [self scaledUIFontFromUserSpecs:options];
   if (!font) {
-    reject(E_INVALID_FONT_SPEC, @"Invalid font specification.", nil);
-    return;
+    return @{
+      @"width": @0,
+      @"height": @0,
+      @"lastLineWidth": @0,
+      @"lineCount": @0,
+    };
   }
 
   // Allow the user to specify the width or height (both optionals).
@@ -141,7 +146,7 @@ RCT_EXPORT_METHOD(measure:(NSDictionary * _Nullable)options
     }
   }
 
-  resolve(result);
+  return result;
 }
 
 /**
